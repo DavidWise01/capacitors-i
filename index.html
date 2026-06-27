@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Capacitors as Communicators · I — The Change Detector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --scope:#0a0f0c;          /* scope CRT black-green */
+    --slate:#0e1512;
+    --panel:#121b17;
+    --grid:#1c2b24;
+    --phos:#6fe6a0;           /* phosphor green — the trace */
+    --phos-dim:#3a7a58;
+    --signal:#f0a830;         /* signal amber — voltage */
+    --current:#5fd0e0;        /* current cyan */
+    --paper:#e8efe9;          /* reading text */
+    --paper-dim:#8fa89a;
+    --rule:#1c2b2433;
+    --rose:#e07a9a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{background:var(--scope);color:var(--paper);
+    font-family:'Newsreader',Georgia,serif;font-size:18px;line-height:1.7;font-weight:400;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px}
+
+  /* ── HERO ── */
+  .hero{min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding:70px 0 40px}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--current);margin-bottom:22px;font-weight:500}
+  .kicker .s{color:var(--phos-dim)}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(40px,8.5vw,84px);
+    line-height:.98;letter-spacing:-.03em;color:var(--paper)}
+  h1 .green{color:var(--phos)}
+  .lede{font-size:clamp(19px,2.4vw,24px);color:var(--paper-dim);max-width:600px;margin-top:30px;line-height:1.5}
+  .lede b{color:var(--paper);font-weight:500}
+  .lede .amber{color:var(--signal)}
+  .eq{font-family:'IBM Plex Mono',monospace;margin-top:40px;font-size:clamp(26px,5vw,44px);
+    color:var(--phos);letter-spacing:.02em;font-weight:500}
+  .eq .v{color:var(--signal)} .eq .i{color:var(--current)} .eq .c{color:var(--paper)}
+  .eq-cap{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--paper-dim);margin-top:14px;letter-spacing:.04em}
+
+  /* ── SECTIONS ── */
+  .sec{padding:60px 0;border-top:1px solid var(--rule)}
+  .tag{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--current);margin-bottom:14px;font-weight:500}
+  h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(26px,4.5vw,40px);
+    line-height:1.05;letter-spacing:-.015em;color:var(--paper)}
+  h2 .green{color:var(--phos)}
+  .sec p{margin:18px 0;color:var(--paper);max-width:680px}
+  .sec p.dim{color:var(--paper-dim)}
+  .sec p b{color:var(--paper);font-weight:600}
+  .sec p .amber{color:var(--signal);font-weight:500}
+  .sec p .cyan{color:var(--current);font-weight:500}
+  .sec p .green{color:var(--phos);font-weight:500}
+  .pull{font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:clamp(20px,3vw,27px);
+    line-height:1.35;color:var(--phos);margin:30px 0;padding-left:20px;border-left:3px solid var(--phos-dim)}
+  code{font-family:'IBM Plex Mono',monospace;font-size:.85em;color:var(--current);
+    background:#0e1512;padding:2px 7px;border-radius:5px}
+  .flag{font-family:'Newsreader';font-size:15.5px;color:var(--paper-dim);font-style:italic;
+    margin:18px 0;padding:14px 18px;background:#0e151266;border:1px solid var(--rule);border-radius:8px}
+  .flag b{color:var(--rose);font-style:normal;font-weight:600;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;letter-spacing:.15em;text-transform:uppercase;display:block;margin-bottom:6px}
+
+  /* ── INSTRUMENT PANELS ── */
+  .inst{margin:34px 0;border:1px solid var(--grid);border-radius:14px;overflow:hidden;background:var(--slate)}
+  .inst-bar{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--grid);
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--paper-dim)}
+  .inst-bar .led{width:9px;height:9px;border-radius:50%;background:var(--phos);box-shadow:0 0 8px var(--phos)}
+  .inst-bar .ttl{color:var(--phos)}
+  canvas{display:block;width:100%;height:auto;background:var(--scope)}
+  .ctrls{padding:16px 18px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;border-top:1px solid var(--grid)}
+  .ctrl{display:flex;flex-direction:column;gap:6px;flex:1;min-width:150px}
+  .ctrl label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim)}
+  .ctrl label .val{color:var(--signal);float:right}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--grid);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    background:var(--phos);cursor:pointer;box-shadow:0 0 8px var(--phos-dim)}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:var(--phos);cursor:pointer}
+  .segs{display:flex;gap:6px;flex-wrap:wrap}
+  .seg{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 12px;border:1px solid var(--grid);
+    border-radius:8px;background:var(--panel);color:var(--paper-dim);cursor:pointer;touch-action:manipulation}
+  .seg.on{border-color:var(--phos);color:var(--phos);background:rgba(111,230,160,.1)}
+  .readout{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--paper-dim);padding:0 18px 16px}
+  .readout b{color:var(--current)} .readout .amber{color:var(--signal)}
+
+  .foot{padding:50px 0 80px;border-top:1px solid var(--rule);margin-top:40px;
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper-dim);line-height:2}
+  .foot b{color:var(--phos)}
+  .next{margin:30px 0;padding:20px;border:1px dashed var(--phos-dim);border-radius:12px}
+  .next .nt{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--current);margin-bottom:10px}
+  .next ol{margin:0;padding-left:22px;color:var(--paper-dim);font-size:15.5px;line-height:1.9}
+  .next ol li b{color:var(--paper)} .next ol li.done{color:var(--phos)}
+
+  @media (max-width:560px){body{font-size:17px}.ctrl{min-width:100%}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="kicker">Capacitors as Communicators <span class="s">·</span> Paper I of the series</div>
+    <h1>The <span class="green">change</span><br>detector</h1>
+    <p class="lede">A capacitor looks like a part that just <b>stores charge</b>. Watch it the right way and it's something else entirely: a device that responds to <span class="amber">change</span>, never to state. It ignores what's holding still and passes only what moves — which is the most basic act of <b>communication</b> there is.</p>
+    <div class="eq"><span class="i">i</span> <span class="c">=</span> <span class="c">C</span> · <span class="c">d</span><span class="v">v</span><span class="c">/dt</span></div>
+    <div class="eq-cap">the whole series in one line · current follows the <span style="color:var(--signal)">slope</span> of voltage, not its value</div>
+  </header>
+
+  <!-- SECTION 1: the equation -->
+  <section class="sec">
+    <div class="tag">§1 · the one equation</div>
+    <h2>Current follows the <span class="green">slope</span>, not the level</h2>
+    <p>Every claim in this series unspools from <code>i = C·dv/dt</code>. In words: the current flowing "through" a capacitor is proportional to <b>how fast the voltage across it is changing</b> — its rate, its slope — and not at all to the voltage itself.</p>
+    <p>Sit a steady voltage on it and nothing flows: a flat line has zero slope, so <span class="cyan">i = 0</span>. The capacitor is, to a constant, <em>invisible</em>. But move that voltage — ramp it, wiggle it, edge it — and current flows in exact proportion to the steepness of the move. <span class="amber">Steeper change, more current.</span> Reverse the change, reverse the current.</p>
+    <p class="pull">A capacitor cannot see a message that holds still. It only ever reports the difference.</p>
+    <p class="dim">That single fact is why a capacitor is a communicator and not just a bucket. A bucket tells you how full it is. A capacitor tells you the moment the level <em>changed</em> — and change, not level, is where information lives.</p>
+  </section>
+
+  <!-- INSTRUMENT 1: THE SLAB -->
+  <section class="sec">
+    <div class="tag">§2 · instrument one</div>
+    <h2>The slab — what's at rest</h2>
+    <p class="dim">Before change can mean anything, see the resting state. Two plates, a voltage across them, charge piling up on the faces, a field strung between. Drag the voltage and watch charge follow: <code>Q = C·V</code>. This is the still picture — the thing the next instrument will set in motion.</p>
+
+    <div class="inst">
+      <div class="inst-bar"><span class="led"></span><span class="ttl">THE SLAB</span> · Q = C·V · field between two plates</div>
+      <canvas id="slab"></canvas>
+      <div class="ctrls">
+        <div class="ctrl">
+          <label>voltage <span class="val" id="slabVval">3.0 V</span></label>
+          <input type="range" id="slabV" min="-5" max="5" step="0.1" value="3">
+        </div>
+        <div class="ctrl">
+          <label>plate spacing <span class="val" id="slabDval">1.0×</span></label>
+          <input type="range" id="slabD" min="0.5" max="2" step="0.05" value="1">
+        </div>
+      </div>
+      <div class="readout">charge <b id="slabQ">+3.0 units</b> · field <b id="slabE">strong</b> · <span class="amber">closer plates or higher V → more charge held</span></div>
+    </div>
+    <p class="dim">Note what this still picture <em>can't</em> tell you: nothing here is a message yet. A held charge is a held state. To communicate, the slab has to <span class="green">move</span> — and the instant it does, the next instrument lights up.</p>
+  </section>
+
+  <!-- INSTRUMENT 2: THE DIFFERENTIATOR -->
+  <section class="sec">
+    <div class="tag">§3 · instrument two · the heart of the series</div>
+    <h2>The differentiator — <span class="green">i = C·dv/dt</span>, live</h2>
+    <p>Here is the whole thesis as a moving instrument. The <span class="amber">amber trace</span> is the voltage you drive onto the plate. The <span class="cyan">cyan trace</span> is the current that flows in response — and it is, exactly, the <b>slope</b> of the amber. Drive a flat stretch (a held level, a DC bias) and the cyan flatlines to zero: <span class="cyan">the capacitor blocks DC by ignoring it.</span> Drive an edge and the cyan spikes. Drive a fast wiggle and the cyan dances harder than the amber.</p>
+
+    <div class="inst">
+      <div class="inst-bar"><span class="led"></span><span class="ttl">THE DIFFERENTIATOR</span> · <span style="color:var(--signal)">v(t)</span> in · <span style="color:var(--current)">i(t)=C·dv/dt</span> out</div>
+      <canvas id="diff"></canvas>
+      <div class="ctrls">
+        <div class="ctrl" style="flex:2;min-width:100%">
+          <label>drive signal</label>
+          <div class="segs" id="diffWave">
+            <div class="seg on" data-w="step">step / edge</div>
+            <div class="seg" data-w="ramp">ramp + hold</div>
+            <div class="seg" data-w="sine">sine (wiggle)</div>
+            <div class="seg" data-w="dc">pure DC</div>
+            <div class="seg" data-w="pulse">pulse train</div>
+          </div>
+        </div>
+        <div class="ctrl">
+          <label>rate of change <span class="val" id="diffRval">1.0×</span></label>
+          <input type="range" id="diffR" min="0.3" max="3" step="0.05" value="1">
+        </div>
+        <div class="ctrl">
+          <label>capacitance C <span class="val" id="diffCval">1.0×</span></label>
+          <input type="range" id="diffC" min="0.3" max="2.5" step="0.05" value="1">
+        </div>
+      </div>
+      <div class="readout" id="diffRead">drive an edge — watch the current spike on the change, then fall to zero where the voltage holds.</div>
+    </div>
+
+    <p class="pull">Flat voltage → zero current. The capacitor is deaf to anything that isn't moving — and that deafness is the DC block, the first real comms trick in the kit.</p>
+
+    <div class="flag"><b>honest flag</b>This is the ideal capacitor — pure <code>i = C·dv/dt</code>, no resistance, no leakage, no dielectric loss. Real parts add series resistance (ESR), finite leakage, and frequency limits, which is exactly what the later instruments (the RC filter, the coupling cap) will bring in. The ideal is the right place to start because the comms behavior — change-not-state — is already complete here; the real-world terms only shape it.</p>
+
+    <p>Try the <code>pure DC</code> setting: a steady voltage, and the current trace is a dead flat line on zero. Then <code>sine</code>: the current is a sine too, but <b>shifted a quarter-turn</b> — peaking where the voltage is changing fastest (at the zero-crossings), zero where the voltage is momentarily still (at the peaks). That quarter-turn shift is the signature of a derivative, drawn live. The capacitor isn't lagging — it's reporting the rate.</p>
+  </section>
+
+  <!-- WHERE THIS GOES -->
+  <section class="sec">
+    <div class="tag">§4 · the series ahead</div>
+    <h2>From change-detector to <span class="green">channel</span></h2>
+    <p>Everything else capacitors do in communication is this one behavior, dressed for a job. Block the DC and pass the signal — that's a <b>coupling capacitor</b>. Pass some rates of change and not others — that's a <b>filter</b>. Let the change leap a gap with no wire — that's <b>capacitive coupling</b>, and it's the same displacement current Maxwell needed to finish his equations. The foundation you just watched is the whole channel in seed form.</p>
+
+    <div class="next">
+      <div class="nt">the series · this paper covers 1–2</div>
+      <ol>
+        <li class="done"><b>The slab</b> — Q = C·V, the resting state ✓</li>
+        <li class="done"><b>The differentiator</b> — i = C·dv/dt, change-not-state ✓</li>
+        <li><b>AC coupling / the DC block</b> — carry the message, drop the bias</li>
+        <li><b>The RC filter</b> — choose <em>which</em> changes pass (frequency)</li>
+        <li><b>Capacitive coupling</b> — the message across a gap, no wire (displacement current)</li>
+      </ol>
+    </div>
+    <p class="dim">Stack the rest when you're ready — each one is this same equation, pointed at a new job.</p>
+  </section>
+
+  <div class="foot">
+    CAPACITORS AS COMMUNICATORS · PAPER I — THE CHANGE DETECTOR<br>
+    the one law: <b>i = C·dv/dt</b> · current follows the slope, not the level<br>
+    physics-first · the ideal cap, honestly flagged · two live instruments · math pre-checked in node<br>
+    a capacitor cannot hear what holds still — it only ever reports the difference
+  </div>
+
+</div>
+
+<script>
+"use strict";
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const COL={scope:"#0a0f0c",grid:"#1c2b24",phos:"#6fe6a0",phosDim:"#3a7a58",
+  signal:"#f0a830",current:"#5fd0e0",paper:"#8fa89a"};
+
+function setupCanvas(cv, ratio){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const cssW=cv.parentElement.clientWidth;
+  const cssH=Math.round(cssW*ratio);
+  cv.width=cssW*dpr; cv.height=cssH*dpr;
+  cv.style.height=cssH+"px";
+  const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,W:cssW,H:cssH};
+}
+function grid(ctx,W,H,div){
+  ctx.strokeStyle=COL.grid; ctx.lineWidth=1;
+  for(let x=0;x<=W;x+=W/div){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<=H;y+=H/Math.round(div*H/W);y){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();y+=H/8;}
+}
+
+/* ── INSTRUMENT 1 · THE SLAB ── */
+(function(){
+  const cv=document.getElementById("slab");
+  const Vin=document.getElementById("slabV"), Din=document.getElementById("slabD");
+  const Vval=document.getElementById("slabVval"), Dval=document.getElementById("slabDval");
+  const Qout=document.getElementById("slabQ"), Eout=document.getElementById("slabE");
+  let dim=setupCanvas(cv,0.5);
+  window.addEventListener("resize",()=>{dim=setupCanvas(cv,0.5);});
+  let charges=[]; // animated charge dots drifting toward plates
+
+  function draw(t){
+    const {ctx,W,H}=dim;
+    const V=parseFloat(Vin.value), D=parseFloat(Din.value);
+    Vval.textContent=V.toFixed(1)+" V";
+    Dval.textContent=D.toFixed(2)+"×";
+    ctx.clearRect(0,0,W,H);
+    // light grid
+    ctx.strokeStyle=COL.grid;ctx.lineWidth=1;
+    for(let x=0;x<=W;x+=W/12){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<=H;y+=H/6){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    const cx=W/2, cy=H/2;
+    const gap=(W*0.10)*D;                 // half-spacing
+    const plateH=H*0.56, plateW=10;
+    const lx=cx-gap, rx=cx+gap;
+    const pol=Math.sign(V)||1, mag=Math.abs(V)/5;
+
+    // field lines between plates (density ∝ |V|, only if V≠0)
+    const nF=Math.max(0,Math.round(mag*9));
+    ctx.strokeStyle=`rgba(111,230,160,${0.18+0.5*mag})`; ctx.lineWidth=1.4;
+    for(let i=0;i<nF;i++){
+      const fy=cy-plateH/2+ (plateH/(nF))*(i+0.5);
+      ctx.beginPath();
+      // arrows point from + to - plate
+      const x0= pol>0? lx+plateW/2 : rx-plateW/2;
+      const x1= pol>0? rx-plateW/2 : lx+plateW/2;
+      ctx.moveTo(x0,fy); ctx.lineTo(x1,fy); ctx.stroke();
+      // arrowhead
+      const dir=Math.sign(x1-x0);
+      ctx.beginPath();ctx.moveTo(x1,fy);ctx.lineTo(x1-6*dir,fy-3);ctx.lineTo(x1-6*dir,fy+3);ctx.closePath();
+      ctx.fillStyle=`rgba(111,230,160,${0.3+0.5*mag})`;ctx.fill();
+    }
+
+    // plates
+    function plate(x,sign){
+      ctx.fillStyle="#2a3b32"; ctx.fillRect(x-plateW/2,cy-plateH/2,plateW,plateH);
+      ctx.fillStyle = sign>0? COL.signal : COL.current;
+      // charge symbols
+      const n=Math.max(0,Math.round(mag*6));
+      ctx.font="13px 'IBM Plex Mono', monospace"; ctx.textAlign="center"; ctx.textBaseline="middle";
+      for(let i=0;i<n;i++){
+        const yy=cy-plateH/2+ (plateH/(n+1))*(i+1);
+        ctx.fillText(sign>0?"+":"–", x + (x<cx? -12:12), yy);
+      }
+      // wire stub + terminal
+      ctx.strokeStyle="#3a4d43";ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(x, cy-plateH/2);ctx.lineTo(x, H*0.12);ctx.stroke();
+    }
+    plate(lx, pol>0? 1:-1);
+    plate(rx, pol>0? -1:1);
+
+    // battery label
+    ctx.fillStyle=COL.paper;ctx.font="12px 'IBM Plex Mono', monospace";ctx.textAlign="center";
+    ctx.fillText((V>=0?"+":"")+V.toFixed(1)+" V across the plates", cx, H*0.92);
+
+    // readouts
+    const q=Math.abs(V)/D;
+    Qout.textContent=(V>=0?"+":"–")+q.toFixed(1)+" units";
+    Eout.textContent = mag>0.66?"strong":mag>0.33?"moderate":mag>0.02?"weak":"none (V=0)";
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* ── INSTRUMENT 2 · THE DIFFERENTIATOR ── */
+(function(){
+  const cv=document.getElementById("diff");
+  const Rin=document.getElementById("diffR"), Cin=document.getElementById("diffC");
+  const Rval=document.getElementById("diffRval"), Cval=document.getElementById("diffCval");
+  const read=document.getElementById("diffRead");
+  const segWrap=document.getElementById("diffWave");
+  let wave="step";
+  let dim=setupCanvas(cv,0.62);
+  window.addEventListener("resize",()=>{dim=setupCanvas(cv,0.62);});
+
+  segWrap.querySelectorAll(".seg").forEach(s=>{
+    s.onclick=()=>{ wave=s.dataset.w;
+      segWrap.querySelectorAll(".seg").forEach(o=>o.classList.toggle("on",o===s));
+      updateRead();
+    };
+  });
+  const READS={
+    step:"a single edge: current spikes at the change, then snaps to zero where the voltage holds. the spike IS the message.",
+    ramp:"a ramp gives constant current (constant slope); the flat hold gives zero. change vs. state, side by side.",
+    sine:"current is a sine shifted a quarter-turn — peaking where voltage moves fastest, zero where it's momentarily still.",
+    dc:"pure DC: the voltage holds, so the current is a dead flat zero. the capacitor is invisible to a constant. this is the DC block.",
+    pulse:"each pulse edge fires a current spike — up on the rising edge, down on the falling. the cap reports only the transitions."
+  };
+  function updateRead(){ read.innerHTML=READS[wave]; }
+  updateRead();
+
+  // voltage waveform v(phase 0..1), amplitude ~ -1..1
+  function vWave(p, rate){
+    const r=rate;
+    switch(wave){
+      case "step": { // edge at 0.5
+        const e=0.5; const k=24/r;
+        return Math.tanh((p-e)*k); }
+      case "ramp": { // up 0..0.4, hold 0.4..0.7, down 0.7..1
+        if(p<0.4) return -1+ (p/0.4)*2;
+        if(p<0.7) return 1;
+        return 1-((p-0.7)/0.3)*2; }
+      case "sine": return Math.sin(p*Math.PI*2*Math.max(1,Math.round(r*2)));
+      case "dc": return 0.55;
+      case "pulse": { // 3 pulses
+        const seg=(p*3)%1; return seg<0.5?0.8:-0.8; }
+    }
+    return 0;
+  }
+
+  function draw(t){
+    const {ctx,W,H}=dim;
+    const rate=parseFloat(Rin.value), C=parseFloat(Cin.value);
+    Rval.textContent=rate.toFixed(1)+"×"; Cval.textContent=C.toFixed(1)+"×";
+    ctx.clearRect(0,0,W,H);
+
+    // grid
+    ctx.strokeStyle=COL.grid;ctx.lineWidth=1;
+    for(let x=0;x<=W;x+=W/12){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<=H;y+=H/8){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    // zero axes for the two traces
+    const padL=44, padR=12, plotW=W-padL-padR;
+    const vMid=H*0.30, iMid=H*0.74, amp=H*0.18;
+    ctx.strokeStyle="#2a3b32";ctx.lineWidth=1;
+    [vMid,iMid].forEach(my=>{ctx.beginPath();ctx.moveTo(padL,my);ctx.lineTo(W-padR,my);ctx.stroke();});
+    // labels
+    ctx.font="11px 'IBM Plex Mono', monospace";ctx.textAlign="left";ctx.textBaseline="middle";
+    ctx.fillStyle=COL.signal; ctx.fillText("v(t)",6,vMid);
+    ctx.fillStyle=COL.current; ctx.fillText("i(t)",6,iMid);
+
+    // a scrolling window: phase offset animates unless reduced
+    const scroll = reduce?0:(t*0.06*rate)%1;
+    const N=240;
+    const pts=[]; // {x, v, i}
+    const dp=1/N;
+    for(let k=0;k<=N;k++){
+      const p=(k/N + scroll)%1;
+      const v=vWave(p,rate);
+      // numerical derivative for current
+      const p2=(p+dp)%1;
+      let dv=(vWave(p2,rate)-v);
+      // small dp keeps the numerical derivative clean across the wrap seam
+      const slope=dv/dp;
+      const i = C*slope;
+      pts.push({x:padL+plotW*(k/N), v, i});
+    }
+    // scale current for display (it can be large for steep edges) — soft clamp
+    const iScaleRaw = Math.max(...pts.map(o=>Math.abs(o.i)),0.001);
+    const iScale = amp/ Math.min(Math.max(iScaleRaw,1.2), 8);
+
+    // glow helper
+    function trace(getY,color,gw){
+      ctx.shadowColor=color; ctx.shadowBlur=gw; ctx.strokeStyle=color; ctx.lineWidth=2;
+      ctx.beginPath();
+      pts.forEach((o,k)=>{ const y=getY(o); if(k===0)ctx.moveTo(o.x,y); else ctx.lineTo(o.x,y); });
+      ctx.stroke(); ctx.shadowBlur=0;
+    }
+    // current trace (cyan) — drawn first/behind
+    trace(o=>iMid - Math.max(-amp*1.4,Math.min(amp*1.4, o.i*iScale)), COL.current, 8);
+    // voltage trace (amber)
+    trace(o=>vMid - o.v*amp, COL.signal, 8);
+
+    // legend chips
+    ctx.font="11px 'IBM Plex Mono', monospace"; ctx.textAlign="right";
+    ctx.fillStyle=COL.signal; ctx.fillText("voltage in",W-padR,14);
+    ctx.fillStyle=COL.current; ctx.fillText("current = C·dv/dt out",W-padR,30);
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
